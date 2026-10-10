@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OLIYhunter — Crude Oil Decision Desk</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            oil: {
+              950: '#070b12',
+              900: '#111822',
+              800: '#182232',
+              700: '#2a384c',
+              600: '#3a4d66',
+            },
+            amber: { brand: '#e3a322', ink: '#1a1203' }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { background: #070b12; font-variant-numeric: tabular-nums; }
+    .card-hover { transition: border-color .18s ease, background .18s ease; }
+    .card-hover:hover { border-color: #e3a322; background: #182232; }
+    .positive { color: #3dbe7a; }
+    .negative { color: #e25b5b; }
+    .check-btn { transition: background .15s, border-color .15s, color .15s; }
+    .check-btn.active-pass { background: rgba(61,190,122,.15); border-color: #3dbe7a; color: #3dbe7a; }
+    .check-btn.active-fail { background: rgba(226,91,91,.15); border-color: #e25b5b; color: #e25b5b; }
+    .check-btn.active-neutral { background: rgba(227,163,34,.12); border-color: #e3a322; color: #e3a322; }
+  </style>
+</head>
+<body class="bg-oil-950 text-gray-100 min-h-screen antialiased">
+
+  <header class="border-b border-oil-700 bg-oil-900/90 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-amber-brand text-amber-ink flex items-center justify-center font-bold text-lg">O</div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">OLIYhunter</h1>
+          <p class="text-xs text-gray-400">Crude oil decision desk · Phase 1</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-5 text-sm">
+        <div class="text-right">
+          <div class="text-gray-400 text-xs">WTI</div>
+          <div id="wti-price" class="font-semibold text-lg">—</div>
+          <div id="wti-change" class="text-xs">—</div>
+        </div>
+        <div class="text-right">
+          <div class="text-gray-400 text-xs">Brent</div>
+          <div id="brent-price" class="font-semibold text-lg">—</div>
+          <div id="brent-change" class="text-xs">—</div>
+        </div>
+        <div class="hidden sm:block text-xs text-gray-500">Updated <span id="last-update">—</span></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <div class="lg:col-span-8 space-y-6">
+
+        <section class="bg-oil-900 border border-oil-700 rounded-2xl p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+            <div>
+              <p class="text-xs uppercase tracking-wide text-gray-500">Day-trade decision frame</p>
+              <h2 class="text-xl font-semibold mt-1">Checklist → bias → hold rule</h2>
+              <p class="text-sm text-gray-400 mt-1">Mark each criterion. Summary updates automatically. Not a signal — a decision aid.</p>
+            </div>
+            <div id="trade-verdict" class="text-right">
+              <div class="text-xs text-gray-500">Suggested stance</div>
+              <div id="stance-label" class="text-2xl font-bold text-amber-brand">No trade</div>
+            </div>
+          </div>
+
+          <div class="space-y-3" id="checklist"></div>
+
+          <div class="mt-5 grid sm:grid-cols-3 gap-3 text-sm">
+            <div class="bg-oil-800/60 border border-oil-700 rounded-xl p-3">
+              <div class="text-xs text-gray-500 mb-1">Bias</div>
+              <div id="bias-out" class="font-semibold text-amber-brand">No trade</div>
+            </div>
+            <div class="bg-oil-800/60 border border-oil-700 rounded-xl p-3">
+              <div class="text-xs text-gray-500 mb-1">Invalidation (you set)</div>
+              <input id="invalidation" type="text" placeholder="e.g. below 90.50 or OR low"
+                class="w-full bg-transparent border-b border-oil-600 focus:border-amber-brand outline-none py-1 text-gray-100 placeholder:text-gray-600" />
+            </div>
+            <div class="bg-oil-800/60 border border-oil-700 rounded-xl p-3">
+              <div class="text-xs text-gray-500 mb-1">Hold until</div>
+              <select id="hold-until" class="w-full bg-oil-900 border border-oil-700 rounded-lg px-2 py-1.5 text-gray-100">
+                <option value="invalidation">Structure breaks (invalidation)</option>
+                <option value="target">Target level hit</option>
+                <option value="time">Time stop (30–90 min dead trade)</option>
+                <option value="eod" selected>Flat before end of session</option>
+                <option value="event">Flat into major event (EIA / news)</option>
+              </select>
+            </div>
+          </div>
+
+          <p id="hold-note" class="mt-3 text-xs text-gray-400"></p>
+          <p class="mt-2 text-xs text-gray-600">Educational tool only. Not financial advice. You still define entry, size, and stop.</p>
+        </section>
+
+        <section class="bg-oil-900 border border-oil-700 rounded-2xl overflow-hidden">
+          <div class="px-4 py-3 border-b border-oil-700 flex items-center justify-between">
+            <h2 class="font-semibold">Live charts</h2>
+            <a href="https://www.tradingview.com/chart/?symbol=TVC%3AUSOIL" target="_blank" rel="noreferrer"
+               class="text-xs px-3 py-1.5 rounded-lg bg-amber-brand text-amber-ink font-medium">Open full TradingView</a>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2">
+            <div class="border-b md:border-b-0 md:border-r border-oil-700">
+              <div class="px-3 py-2 text-sm text-gray-300 bg-oil-800">WTI (USOIL)</div>
+              <div id="tv_wti" style="height:360px;"></div>
+            </div>
+            <div>
+              <div class="px-3 py-2 text-sm text-gray-300 bg-oil-800">Brent (UKOIL)</div>
+              <div id="tv_brent" style="height:360px;"></div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 class="text-lg font-semibold mb-3">Market factors (click for depth)</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <a href="supply.html" class="card-hover block bg-oil-900 border border-oil-700 rounded-2xl p-4">
+              <div class="flex justify-between mb-1"><h3 class="font-semibold">Supply</h3><span class="text-xs text-red-400">Bearish lean</span></div>
+              <p class="text-sm text-gray-400">OPEC+, US shale, outages, exports</p>
+            </a>
+            <a href="demand.html" class="card-hover block bg-oil-900 border border-oil-700 rounded-2xl p-4">
+              <div class="flex justify-between mb-1"><h3 class="font-semibold">Demand</h3><span class="text-xs text-green-400">Bullish lean</span></div>
+              <p class="text-sm text-gray-400">China/India, seasonal, refining</p>
+            </a>
+            <a href="inventories.html" class="card-hover block bg-oil-900 border border-oil-700 rounded-2xl p-4">
+              <div class="flex justify-between mb-1"><h3 class="font-semibold">Inventories</h3><span class="text-xs text-green-400">Bullish lean</span></div>
+              <p class="text-sm text-gray-400" id="inv-summary">EIA crude / products / SPR</p>
+            </a>
+            <a href="geopolitics.html" class="card-hover block bg-oil-900 border border-oil-700 rounded-2xl p-4">
+              <div class="flex justify-between mb-1"><h3 class="font-semibold">Geopolitics</h3><span class="text-xs text-amber-brand">Neutral</span></div>
+              <p class="text-sm text-gray-400">Hormuz, Red Sea, Russia, risk premium</p>
+            </a>
+            <a href="macro.html" class="card-hover block bg-oil-900 border border-oil-700 rounded-2xl p-4">
+              <div class="flex justify-between mb-1"><h3 class="font-semibold">Macro & USD</h3><span class="text-xs text-red-400">Bearish lean</span></div>
+              <p class="text-sm text-gray-400">DXY, rates, growth</p>
+            </a>
+            <a href="technicals.html" class="card-hover block bg-oil-900 border border-oil-700 rounded-2xl p-4">
+              <div class="flex justify-between mb-1"><h3 class="font-semibold">Technicals</h3><span class="text-xs text-amber-brand">Neutral</span></div>
+              <p class="text-sm text-gray-400">Levels, momentum, positioning</p>
+            </a>
+          </div>
+        </section>
+
+        <section class="bg-oil-900 border border-oil-700 rounded-2xl p-4">
+          <h2 class="font-semibold mb-3">Upcoming catalysts</h2>
+          <ul class="space-y-2 text-sm text-gray-300">
+            <li class="flex justify-between gap-2"><span>EIA Weekly Petroleum Status Report</span><span class="text-gray-500 shrink-0">Wed 10:30 ET</span></li>
+            <li class="flex justify-between gap-2"><span>OPEC+ / JMMC schedule</span><span class="text-gray-500 shrink-0">Calendar</span></li>
+            <li class="flex justify-between gap-2"><span>Major US macro (CPI, FOMC)</span><span class="text-gray-500 shrink-0">Watch size</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <aside class="lg:col-span-4 space-y-4">
+        <div class="bg-oil-900 border border-oil-700 rounded-2xl p-5 lg:sticky lg:top-20">
+          <p class="text-xs uppercase tracking-wide text-gray-500">Live summary</p>
+          <div id="summary-stance" class="mt-2 text-3xl font-bold text-amber-brand">No trade</div>
+          <p id="summary-reason" class="mt-2 text-sm text-gray-400">Mark the five criteria. Default is no trade until the checklist supports a clear side.</p>
+
+          <div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="bg-oil-800 rounded-lg p-2">
+              <div class="text-gray-500">Pass</div>
+              <div id="count-pass" class="text-lg font-semibold positive">0</div>
+            </div>
+            <div class="bg-oil-800 rounded-lg p-2">
+              <div class="text-gray-500">Fail</div>
+              <div id="count-fail" class="text-lg font-semibold negative">0</div>
+            </div>
+            <div class="bg-oil-800 rounded-lg p-2">
+              <div class="text-gray-500">Neutral</div>
+              <div id="count-neutral" class="text-lg font-semibold text-amber-brand">0</div>
+            </div>
+          </div>
+
+          <div class="mt-5 pt-4 border-t border-oil-700">
+            <div class="text-xs text-gray-500 mb-2">Hold rule in force</div>
+            <div id="summary-hold" class="text-sm text-gray-200">Flat before end of US crude session</div>
+            <div id="summary-invalid" class="text-xs text-gray-500 mt-2">Invalidation: not set</div>
+          </div>
+
+          <div class="mt-5 pt-4 border-t border-oil-700">
+            <div class="text-xs text-gray-500 mb-2">EIA inventories</div>
+            <div id="inv-detail" class="text-xs space-y-1 text-gray-300">Loading…</div>
+          </div>
+
+          <div class="mt-5 pt-4 border-t border-oil-700 text-xs text-gray-500 space-y-2">
+            <p><span class="text-gray-400">Phase 1:</span> Crude only — checklist, levels, factors, charts.</p>
+            <p><span class="text-gray-400">Later:</span> AI guide, then any commodity/stock search.</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer class="border-t border-oil-700 mt-8 py-6 text-center text-xs text-gray-500">
+    OLIYhunter · Decision support for crude · Public data feeds · Not trading advice
+  </footer>
+
+  <script src="https://s3.tradingview.com/tv.js"></script>
+  <script>
+    new TradingView.widget({
+      width: "100%", height: 360, symbol: "TVC:USOIL", interval: "D",
+      timezone: "Etc/UTC", theme: "dark", style: "1", locale: "en",
+      toolbar_bg: "#111822", enable_publishing: false, container_id: "tv_wti"
+    });
+    new TradingView.widget({
+      width: "100%", height: 360, symbol: "TVC:UKOIL", interval: "D",
+      timezone: "Etc/UTC", theme: "dark", style: "1", locale: "en",
+      toolbar_bg: "#111822", enable_publishing: false, container_id: "tv_brent"
+    });
+  </script>
+
+  <script>
+    const criteria = [
+      { id: "structure", title: "1. Session structure", help: "Uptrend (HH/HL) favors long. Downtrend (LH/LL) favors short. Choppy range → lean no trade." },
+      { id: "levels", title: "2. Key level defined", help: "Clear support/resistance, VWAP, or opening-range edge with a stop you can place beyond it." },
+      { id: "momentum", title: "3. Momentum agrees", help: "RSI/MACD or price impulse supports the side — not fighting a strong opposite move." },
+      { id: "volume", title: "4. Volume / participation", help: "Break or bounce has expanding interest. Thin tape → easier noise stops." },
+      { id: "session", title: "5. Session & event risk OK", help: "Liquid hours, enough ATR for the stop, not blindly into EIA or a major print." }
+    ];
+    const state = Object.fromEntries(criteria.map(c => [c.id, "neutral"]));
+    const holdLabels = {
+      invalidation: "Exit when structure/invalidation level breaks",
+      target: "Exit at your pre-defined target level",
+      time: "Exit if trade goes nowhere in 30–90 minutes",
+      eod: "Flat before end of US crude session (no overnight)",
+      event: "Flat or reduce before major scheduled event"
+    };
+    function renderChecklist() {
+      const root = document.getElementById("checklist");
+      root.innerHTML = criteria.map(c => `
+        <div class="border border-oil-700 rounded-xl p-3 bg-oil-800/40">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="font-medium text-sm">${c.title}</div>
+              <div class="text-xs text-gray-500 mt-0.5">${c.help}</div>
+            </div>
+            <div class="flex gap-1.5 shrink-0">
+              ${btn(c.id, "pass", "Pass")}
+              ${btn(c.id, "neutral", "Neutral")}
+              ${btn(c.id, "fail", "Fail")}
+            </div>
+          </div>
+        </div>`).join("");
+      root.querySelectorAll("[data-crit]").forEach(el => {
+        el.addEventListener("click", () => {
+          state[el.dataset.crit] = el.dataset.val;
+          renderChecklist();
+          updateSummary();
+        });
+      });
+    }
+    function btn(id, val, label) {
+      const active = state[id] === val ? ` active-${val}` : "";
+      return `<button type="button" data-crit="${id}" data-val="${val}"
+        class="check-btn text-xs px-2.5 py-1 rounded-lg border border-oil-600 text-gray-400${active}">${label}</button>`;
+    }
+    function updateSummary() {
+      let pass = 0, fail = 0, neutral = 0;
+      Object.values(state).forEach(v => {
+        if (v === "pass") pass++;
+        else if (v === "fail") fail++;
+        else neutral++;
+      });
+      document.getElementById("count-pass").textContent = pass;
+      document.getElementById("count-fail").textContent = fail;
+      document.getElementById("count-neutral").textContent = neutral;
+      let stance = "No trade";
+      let color = "text-amber-brand";
+      let reason = "Not enough clear passes, or mixed signals. Default is no trade.";
+      if (pass >= 4 && fail === 0) {
+        stance = "Tradeable setup (side still yours)";
+        color = "positive";
+        reason = "Checklist is largely aligned. You still choose long vs short from structure and levels, with stop and size defined.";
+      } else if (pass >= 3 && fail <= 1) {
+        stance = "Conditional — size small or wait";
+        color = "text-amber-brand";
+        reason = "Partial alignment. Either reduce size, wait for a cleaner trigger, or skip.";
+      } else if (fail >= 3) {
+        stance = "No trade";
+        color = "negative";
+        reason = "Too many failed criteria. Forcing a day trade here is usually noise.";
+      }
+      ["stance-label", "bias-out", "summary-stance"].forEach(id => {
+        const el = document.getElementById(id);
+        el.textContent = stance;
+        el.className = el.className.replace(/positive|negative|text-amber-brand/g, "").trim() + " " + color;
+      });
+      document.getElementById("summary-reason").textContent = reason;
+      const hold = document.getElementById("hold-until").value;
+      document.getElementById("summary-hold").textContent = holdLabels[hold];
+      document.getElementById("hold-note").textContent = "Hold rule: " + holdLabels[hold] + ".";
+      const inv = document.getElementById("invalidation").value.trim();
+      document.getElementById("summary-invalid").textContent = inv
+        ? "Invalidation: " + inv
+        : "Invalidation: not set — define before any entry";
+    }
+    document.getElementById("hold-until").addEventListener("change", updateSummary);
+    document.getElementById("invalidation").addEventListener("input", updateSummary);
+    renderChecklist();
+    updateSummary();
+    async function loadPrices() {
+      try {
+        const [wtiRes, brentRes, stocksRes] = await Promise.all([
+          fetch("https://americasoilwatch.com/api/v1/wti"),
+          fetch("https://americasoilwatch.com/api/v1/brent"),
+          fetch("https://americasoilwatch.com/api/v1/us-stocks")
+        ]);
+        const wti = await wtiRes.json();
+        const brent = await brentRes.json();
+        const stocks = await stocksRes.json();
+        document.getElementById("wti-price").textContent = "$" + Number(wti.priceUsd).toFixed(2);
+        const wtiCh = document.getElementById("wti-change");
+        const wc = wti.changeUsd || 0, wp = wti.changePct || 0;
+        wtiCh.textContent = `${wc >= 0 ? "+" : ""}${wc.toFixed(2)} (${wp >= 0 ? "+" : ""}${wp.toFixed(2)}%)`;
+        wtiCh.className = "text-xs " + (wc >= 0 ? "positive" : "negative");
+        document.getElementById("brent-price").textContent = "$" + Number(brent.priceUsd).toFixed(2);
+        const brentCh = document.getElementById("brent-change");
+        const bc = brent.changeUsd || 0, bp = brent.changePct || 0;
+        brentCh.textContent = `${bc >= 0 ? "+" : ""}${bc.toFixed(2)} (${bp >= 0 ? "+" : ""}${bp.toFixed(2)}%)`;
+        brentCh.className = "text-xs " + (bc >= 0 ? "positive" : "negative");
+        document.getElementById("last-update").textContent = new Date().toLocaleTimeString();
+        if (stocks) {
+          const crudeChange = stocks.crudeMbChange || 0;
+          document.getElementById("inv-summary").textContent =
+            `Crude ${(stocks.crudeMb / 1000).toFixed(1)}M bbl (${crudeChange >= 0 ? "+" : ""}${crudeChange}k)`;
+          document.getElementById("inv-detail").innerHTML = `
+            <div>Crude: <span class="font-medium">${(stocks.crudeMb / 1000).toFixed(1)}M</span>
+              <span class="${crudeChange < 0 ? "positive" : "negative"}">(${crudeChange >= 0 ? "+" : ""}${crudeChange}k)</span></div>
+            <div>Gasoline: ${(stocks.gasolineMb / 1000).toFixed(1)}M</div>
+            <div>Distillates: ${(stocks.distillateMb / 1000).toFixed(1)}M</div>
+            <div>SPR: ${(stocks.sprMb / 1000).toFixed(1)}M</div>
+            <div class="text-gray-500 mt-1">Week ending ${stocks.weekEnding || "—"}</div>`;
+        }
+      } catch (e) { console.error(e); }
+    }
+    loadPrices();
+    setInterval(loadPrices, 60000);
+  </script>
+</body>
+</html>
