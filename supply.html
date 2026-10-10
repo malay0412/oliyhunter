@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supply Analysis — OLIYhunter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { oil: { 950: '#0a0e17', 900: '#0f1623', 800: '#151d2e', 700: '#1c2638' } } } } }
+  </script>
+</head>
+<body class="bg-oil-950 text-gray-100 min-h-screen">
+  <header class="border-b border-oil-700 bg-oil-900/80 sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white">
+        ← Back to Dashboard
+      </a>
+      <div class="font-bold">OLIYhunter</div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-2">Supply Analysis</h1>
+    <p class="text-gray-400 mb-8">OPEC+, US shale, production, exports & spare capacity</p>
+
+    <div class="grid gap-6">
+      <section class="bg-oil-900 border border-oil-700 rounded-xl p-6">
+        <h2 class="text-xl font-semibold mb-4">OPEC+ Production</h2>
+        <p class="text-gray-300 mb-4">OPEC+ remains the primary swing producer. Watch compliance rates, voluntary cuts, and any unexpected production increases from Saudi Arabia, Russia, UAE, Iraq, or Kazakhstan.</p>
+        <ul class="list-disc list-inside text-sm text-gray-400 space-y-1">
+          <li>Current target vs actual output</li>
+          <li>Compliance percentage</li>
+          <li>Spare capacity (mainly Saudi & UAE)</li>
+          <li>Next JMMC / full meeting dates</li>
+        </ul>
+      </section>
+
+      <section class="bg-oil-900 border border-oil-700 rounded-xl p-6">
+        <h2 class="text-xl font-semibold mb-4">US Shale & Production</h2>
+        <p class="text-gray-300 mb-4">US crude production is a major source of non-OPEC supply growth. Key metrics: weekly production estimates, Baker Hughes rig count, and Permian Basin activity.</p>
+        <ul class="list-disc list-inside text-sm text-gray-400 space-y-1">
+          <li>EIA weekly US crude production</li>
+          <li>Active oil rigs (Baker Hughes)</li>
+          <li>DUC wells & completion rates</li>
+          <li>Export volumes (US is now a major exporter)</li>
+        </ul>
+      </section>
+
+      <section class="bg-oil-900 border border-oil-700 rounded-xl p-6">
+        <h2 class="text-xl font-semibold mb-4">How to Trade This Angle</h2>
+        <div class="grid sm:grid-cols-2 gap-4 text-sm">
+          <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+            <div class="font-medium text-green-400 mb-2">Bullish Supply Signals</div>
+            <ul class="text-gray-300 space-y-1">
+              <li>• Unexpected OPEC+ cut extension</li>
+              <li>• Production outages (libya, nigeria, etc.)</li>
+              <li>• Falling US rig count</li>
+            </ul>
+          </div>
+          <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+            <div class="font-medium text-red-400 mb-2">Bearish Supply Signals</div>
+            <ul class="text-gray-300 space-y-1">
+              <li>• OPEC+ raising output targets</li>
+              <li>• Strong US production growth</li>
+              <li>• High compliance failures (overproduction)</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
