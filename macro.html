@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Macro & USD — OLIYhunter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class', theme: { extend: { colors: { oil: { 950: '#0a0e17', 900: '#0f1623', 800: '#151d2e', 700: '#1c2638' } } } } }
+  </script>
+</head>
+<body class="bg-oil-950 text-gray-100 min-h-screen">
+  <header class="border-b border-oil-700 bg-oil-900/80 sticky top-0 z-50">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-sm text-gray-400 hover:text-white">← Back to Dashboard</a>
+      <div class="font-bold">OLIYhunter</div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-2">Macro & USD</h1>
+    <p class="text-gray-400 mb-8">Dollar strength, interest rates, global growth</p>
+
+    <div class="grid gap-6">
+      <section class="bg-oil-900 border border-oil-700 rounded-xl p-6">
+        <h2 class="text-xl font-semibold mb-4">USD Index (DXY)</h2>
+        <p class="text-gray-300">Oil is priced in dollars. A stronger USD usually pressures oil prices lower (and vice versa). Correlation is not perfect but is one of the most consistent macro relationships.</p>
+      </section>
+
+      <section class="bg-oil-900 border border-oil-700 rounded-xl p-6">
+        <h2 class="text-xl font-semibold mb-4">Interest Rates & Growth</h2>
+        <p class="text-gray-300">Higher rates and tighter financial conditions can slow global growth and reduce oil demand. Fed, ECB, and China policy decisions matter.</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
